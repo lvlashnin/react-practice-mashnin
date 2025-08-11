@@ -18,7 +18,7 @@ const products = productsFromServer.map(product => {
     categoryTitle: category.title,
     categoryIcon: category.icon,
     userName: user.name,
-    ownerSex: user.sex,
+    userSex: user.sex,
   };
 });
 
@@ -35,15 +35,30 @@ export const App = () => {
     let result = products;
     if (stateSettings.filterbyUser !== 'all') {
       result = result.filter(
-        product => product.ownerName === stateSettings.filterbyUser,
+        product => product.userName === stateSettings.filterbyUser,
       );
     }
-  });
+    if (stateSettings.searchQuery) {
+      result = result.filter(product =>
+        product.userName
+          .toLowerCase()
+          .includes(stateSettings.searchQuery.toLowerCase()),
+      );
+    }
+    return result;
+  }, [{ stateSettings }]);
 
   const handleFiletr = userName => {
     setStateSettings(prev => ({
       ...prev,
       filterbyUser: userName,
+    }));
+  };
+
+  const handleSerch = event => {
+    setStateSettings(prev => ({
+      ...prev,
+      searchQuery: event.target.value,
     }));
   };
   return (
@@ -56,7 +71,14 @@ export const App = () => {
             <p className="panel-heading">Filters</p>
 
             <p className="panel-tabs has-text-weight-bold">
-              <a data-cy="FilterAllUsers" href="#/" className="is-active">
+              <a
+                data-cy="FilterAllUsers"
+                href="#/"
+                onClick={() => handleFiletr('all')}
+                className={cn({
+                  'is-active': stateSettings.filterbyUser === 'all',
+                })}
+              >
                 All
               </a>
               {usersFromServer.map(user => {
@@ -94,7 +116,8 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={stateSettings.searchQuery}
+                  onChange={event => handleSerch(event)}
                 />
 
                 <span className="icon is-left">
@@ -215,7 +238,7 @@ export const App = () => {
             </thead>
 
             <tbody>
-              {products.map(product => {
+              {displayedProducts.map(product => {
                 return (
                   <tr data-cy="Product">
                     <td className="has-text-weight-bold" data-cy="ProductId">
