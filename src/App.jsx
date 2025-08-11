@@ -7,10 +7,18 @@ import './App.scss';
 // import productsFromServer from './api/products';
 
 // const products = productsFromServer.map(product => {
-//   const category = null; // find by product.categoryId
-//   const user = null; // find by category.ownerId
+//   const category = categoriesFromServer.find(
+//     el => el.id === product.categoryId,
+//   ); // find by product.categoryId
+//   const user = usersFromServer.find(el => el.id === category.ownerId); // find by category.ownerId
 
-//   return null;
+//   return {
+//     ...product,
+//     categoryTitle: category.title,
+//     categoryIcon: category.icon,
+//     userName: user.name,
+//     user,
+//   };
 // });
 
 export const App = () => (
