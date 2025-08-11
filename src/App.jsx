@@ -25,10 +25,11 @@ const products = productsFromServer.map(product => {
 export const App = () => {
   const [stateSettings, setStateSettings] = useState({
     filterbyUser: 'all',
-    filterbyCategory: null,
+    filterbyCategory: 'all',
     searchQuery: '',
     sortBy: 'id',
     sortDirection: 'asc',
+    isReset: false,
   });
 
   const displayedProducts = useMemo(() => {
@@ -40,13 +41,24 @@ export const App = () => {
     }
     if (stateSettings.searchQuery) {
       result = result.filter(product =>
-        product.userName
-          .toLowerCase()
-          .includes(stateSettings.searchQuery.toLowerCase()),
+        product.name.toLowerCase().includes(stateSettings.searchQuery),
       );
     }
+    if (stateSettings.filterbyCategory !== 'all') {
+      result = result.filter(
+        product => product.categoryTitle === stateSettings.filterbyCategory,
+      );
+    }
+
+    if (stateSettings.isReset) {
+      result = products;
+      setStateSettings(prev => ({
+        ...prev,
+        isReset: false,
+      }));
+    }
     return result;
-  }, [{ stateSettings }]);
+  }, [stateSettings]);
 
   const handleFiletr = userName => {
     setStateSettings(prev => ({
@@ -61,6 +73,18 @@ export const App = () => {
       searchQuery: event.target.value,
     }));
   };
+
+  const handleCategoryFilter = categoryTitle => {
+    setStateSettings(prev => ({
+      ...prev,
+      filterbyCategory: categoryTitle,
+    }));
+  };
+
+  const handleResetAll = () => {
+    setStateSettings(prev => ({ stateSettings: { ...prev, isReset: true } }));
+  };
+
   return (
     <div className="section">
       <div className="container">
@@ -139,12 +163,31 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={cn('button mr-6 is-outlined is-success')}
+                onClick={() => handleCategoryFilter('all')}
               >
                 All
               </a>
 
-              <a
+              {categoriesFromServer.map(category => {
+                return (
+                  <a
+                    data-cy="Category"
+                    // className="button mr-2 my-1 is-info"
+                    href="#/"
+                    key={category.id}
+                    onClick={() => handleCategoryFilter(category.title)}
+                    className={cn('button', 'my-1', {
+                      'is-info':
+                        category.title === stateSettings.filterbyCategory,
+                    })}
+                  >
+                    {category.title}
+                  </a>
+                );
+              })}
+
+              {/* <a
                 data-cy="Category"
                 className="button mr-2 my-1 is-info"
                 href="#/"
@@ -165,7 +208,7 @@ export const App = () => {
               </a>
               <a data-cy="Category" className="button mr-2 my-1" href="#/">
                 Category 4
-              </a>
+              </a> */}
             </div>
 
             <div className="panel-block">
@@ -173,6 +216,7 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
+                onClick={handleResetAll}
               >
                 Reset all filters
               </a>
@@ -238,22 +282,32 @@ export const App = () => {
             </thead>
 
             <tbody>
-              {displayedProducts.map(product => {
-                return (
-                  <tr data-cy="Product">
-                    <td className="has-text-weight-bold" data-cy="ProductId">
-                      {product.id}
-                    </td>
+              {displayedProducts.length ? (
+                displayedProducts.map(product => {
+                  return (
+                    <tr data-cy="Product">
+                      <td className="has-text-weight-bold" data-cy="ProductId">
+                        {product.id}
+                      </td>
 
-                    <td data-cy="ProductName">{product.name}</td>
-                    <td data-cy="ProductCategory">{`${product.categoryIcon} - ${product.categoryTitle}`}</td>
+                      <td data-cy="ProductName">{product.name}</td>
+                      <td data-cy="ProductCategory">{`${product.categoryIcon} - ${product.categoryTitle}`}</td>
 
-                    <td data-cy="ProductUser" className="has-text-link">
-                      {product.userName}
-                    </td>
-                  </tr>
-                );
-              })}
+                      <td
+                        data-cy="ProductUser"
+                        className={cn({
+                          'has-text-link': product.userSex === 'm',
+                          'has-text-danger': product.userSex === 'f',
+                        })}
+                      >
+                        {product.userName}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <p>No products matching selected criteria</p>
+              )}
               {/* <tr data-cy="Product">
                 <td className="has-text-weight-bold" data-cy="ProductId">
                   1
